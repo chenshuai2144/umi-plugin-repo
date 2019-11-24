@@ -1,11 +1,13 @@
 import React from 'react';
-import { Tags, Global, History, Branches, Loading } from '@ant-design/icons';
+import { Tags, Github, History, Branches, Loading } from '@ant-design/icons';
 import Moment from 'moment';
 import { Avatar, Tooltip } from 'antd';
 import { IUiApi } from 'umi-types';
 import { useAsyncRetry } from 'react-use';
-import gitUrlParse from 'git-url-parse';
+import gitUrlParse, { GitUrl } from 'git-url-parse';
 import ReadMe from './ReadMe';
+import Counter from '../counter';
+import { LogsItem } from 'ui/typing';
 
 export const LoadingTag = () => (
   <div
@@ -25,16 +27,6 @@ export const LoadingTag = () => (
   </div>
 );
 
-export interface LogsItem {
-  hash?: string;
-  date?: string;
-  message?: string;
-  refs?: string;
-  body?: string;
-  author_name?: string;
-  author_email?: string;
-}
-
 /**
  * 仓库的 remote 信息
  * @param param0
@@ -42,18 +34,20 @@ export interface LogsItem {
 const RemoteTag: React.FC<{
   api: IUiApi;
 }> = ({ api }) => {
-  const { value, loading } = useAsyncRetry<string>(async () => {
+  const counter = Counter.useContainer();
+  const { value, loading } = useAsyncRetry<GitUrl>(async () => {
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.remote',
     })) as {
       data: string;
     };
-    return data;
+    const repoInfo = gitUrlParse(data);
+    counter.setRepoInfo(repoInfo);
+    return repoInfo;
   });
   if (loading) {
     return <LoadingTag />;
   }
-  const repoInfo = gitUrlParse(value);
   return (
     <div
       style={{
@@ -62,16 +56,18 @@ const RemoteTag: React.FC<{
         justifyContent: 'center',
         alignItems: 'center',
         borderRight: '1px solid #30303d',
+        cursor: 'pointer',
+      }}
+      onClick={() => {
+        window.open(value.toString('https'));
       }}
     >
-      <Global
+      <Github
         style={{
           marginRight: 8,
         }}
       />
-      <a href={repoInfo.toString('https')} target="_black">
-        {repoInfo.name}
-      </a>
+      {value.name}
     </div>
   );
 };
@@ -82,8 +78,9 @@ const RemoteTag: React.FC<{
  */
 const LogsTag: React.FC<{
   api: IUiApi;
-}> = ({ api }) => {
-  const { value, loading } = useAsyncRetry<LogsItem[]>(async () => {
+  onClick: () => void;
+}> = ({ api, onClick }) => {
+  const { value = [] } = useAsyncRetry<LogsItem[]>(async () => {
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.logs',
     })) as {
@@ -91,17 +88,17 @@ const LogsTag: React.FC<{
     };
     return data;
   });
-  if (loading) {
-    return <LoadingTag />;
-  }
+
   return (
     <div
+      onClick={onClick}
       style={{
         flex: 1,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         borderRight: '1px solid #30303d',
+        cursor: 'pointer',
       }}
     >
       <History
@@ -120,8 +117,9 @@ const LogsTag: React.FC<{
  */
 const BranchTag: React.FC<{
   api: IUiApi;
-}> = ({ api }) => {
-  const { value, loading } = useAsyncRetry(async () => {
+  onClick: () => void;
+}> = ({ api, onClick }) => {
+  const { value = [] } = useAsyncRetry(async () => {
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.branch',
     })) as {
@@ -129,17 +127,17 @@ const BranchTag: React.FC<{
     };
     return data;
   });
-  if (loading) {
-    return <LoadingTag />;
-  }
+
   return (
     <div
+      onClick={onClick}
       style={{
         flex: 1,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         borderRight: '1px solid #30303d',
+        cursor: 'pointer',
       }}
     >
       <Branches
@@ -159,7 +157,7 @@ const BranchTag: React.FC<{
 const TagsInfoTag: React.FC<{
   api: IUiApi;
 }> = ({ api }) => {
-  const { value, loading } = useAsyncRetry(async () => {
+  const { value = [], loading } = useAsyncRetry(async () => {
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.tags',
     })) as {
@@ -177,6 +175,7 @@ const TagsInfoTag: React.FC<{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        cursor: 'pointer',
       }}
     >
       <Tags
@@ -194,7 +193,14 @@ const TagsInfoTag: React.FC<{
  * @param param0
  */
 export const LastCommit = ({ api }: { api: IUiApi }) => {
-  const { value, loading } = useAsyncRetry<{
+  const {
+    value = {
+      commit: {
+        hash: '',
+      },
+      remote: 'https://github.com/chenshuai2144/umi-plugin-repo',
+    },
+  } = useAsyncRetry<{
     commit: LogsItem;
     remote: string;
   }>(async () => {
@@ -202,18 +208,15 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
       type: 'org.umi-plugin-repo.lastCommit',
     })) as {
       data: {
-        commit: LogsItem;
+        commit: Partial<LogsItem>;
         remote: string;
       };
     };
     return data;
   });
 
-  if (loading) {
-    return <LoadingTag />;
-  }
-  const lastCommit = value.commit;
-  const repoInfo = gitUrlParse(value.remote);
+  const lastCommit = (value || {}).commit || {};
+  const repoInfo = gitUrlParse((value || {}).remote);
   const repoUrl = repoInfo.toString('https');
   return (
     <div
@@ -267,22 +270,35 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
   );
 };
 
-export default ({ api }: { api: IUiApi }) => (
-  <>
-    <div
-      style={{
-        display: 'flex',
-        padding: 8,
-        boxShadow: '0 1px 3px rgba(26,26,26,.1)',
-        border: '1px solid #30303d',
-      }}
-    >
-      <RemoteTag api={api} />
-      <LogsTag api={api} />
-      <BranchTag api={api} />
-      <TagsInfoTag api={api} />
-    </div>
-    <LastCommit api={api} />
-    <ReadMe api={api} />
-  </>
-);
+export default ({ api }: { api: IUiApi }) => {
+  const counter = Counter.useContainer();
+  return (
+    <>
+      <div
+        style={{
+          display: 'flex',
+          padding: 8,
+          boxShadow: '0 1px 3px rgba(26,26,26,.1)',
+          border: '1px solid #30303d',
+        }}
+      >
+        <RemoteTag api={api} />
+        <LogsTag
+          api={api}
+          onClick={() => {
+            counter.setPage('commit');
+          }}
+        />
+        <BranchTag
+          onClick={() => {
+            counter.setPage('branch');
+          }}
+          api={api}
+        />
+        <TagsInfoTag api={api} />
+      </div>
+      <LastCommit api={api} />
+      <ReadMe api={api} />
+    </>
+  );
+};

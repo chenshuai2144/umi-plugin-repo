@@ -3,7 +3,6 @@ import { IUiApi } from 'umi-types';
 
 import { useAsyncRetry } from 'react-use';
 import PageLoading from './PageLoading';
-import './index.less';
 
 export default ({ api }: { api: IUiApi }) => {
   const ref = useRef<HTMLDivElement>();
@@ -28,9 +27,6 @@ export default ({ api }: { api: IUiApi }) => {
     }
   }, [value]);
 
-  if (loading) {
-    return <PageLoading />;
-  }
   return (
     <div
       ref={ref}
@@ -39,6 +35,7 @@ export default ({ api }: { api: IUiApi }) => {
         border: '1px solid #30303d',
         padding: 24,
         overflow: 'auto',
+        minHeight: 600,
       }}
       className="markdown-body entry-content"
     />

@@ -1,20 +1,24 @@
 import React from 'react';
 import { IUiApi } from 'umi-types';
-import RepoStatus from './component/RepoStatus';
+import Switch from './switch';
+import Counter from './counter';
+import './index.less';
 
 export default (api: IUiApi) => {
   function PluginPanel() {
     return (
-      <div className="umi-plugin-repo" style={{ padding: 20, height: '100%', overflow: 'auto' }}>
-        <RepoStatus api={api} />
-      </div>
+      <Counter.Provider>
+        <div className="umi-plugin-repo" style={{ padding: 16, height: '100%', overflow: 'auto' }}>
+          <Switch api={api} />
+        </div>
+      </Counter.Provider>
     );
   }
 
   api.addPanel({
     title: '详情',
     path: '/details',
-    icon: 'fork',
+    icon: 'github',
     component: PluginPanel,
   });
 };

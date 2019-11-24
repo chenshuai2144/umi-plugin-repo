@@ -42,6 +42,17 @@ class GitAction {
         reject(err);
       });
     });
+  deleteBranch = (branch: string) =>
+    new Promise<string[]>((resolve, reject) => {
+      this.gitAction.raw(['branch', '-D', branch], (err, data) => {
+        if (!err) {
+          resolve(data);
+        }
+        reject(err);
+      });
+    });
+  deleteBranchList = (branchList: string[]) =>
+    Promise.all(branchList.map(branch => this.deleteBranch(branch)));
 }
 
 export default GitAction;

@@ -61,6 +61,24 @@ export default function(api: IApi, options) {
       })();
     }
 
+    if (action.type === 'org.umi-plugin-repo.deleteBranchList') {
+      (async () => {
+        try {
+          const { branchList } = action.payload as {
+            branchList: string[];
+          };
+          await gitAction.deleteBranchList(branchList);
+          success({
+            data: true,
+          });
+        } catch (error) {
+          failure({
+            data: false,
+          });
+        }
+      })();
+    }
+
     if (action.type === 'org.umi-plugin-repo.readme') {
       (async () => {
         const cwd = api.winPath(api.paths.cwd);

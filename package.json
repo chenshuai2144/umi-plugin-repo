@@ -37,10 +37,12 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@types/git-url-parse": "^9.0.0",
     "git-url-parse": "^11.1.2",
     "markdown-it": "^10.0.0",
     "markdown-it-emoji": "^1.4.0",
     "react-use": "^13.9.0",
-    "simple-git": "^1.126.0"
+    "simple-git": "^1.126.0",
+    "unstated-next": "^1.1.0"
   }
 }
