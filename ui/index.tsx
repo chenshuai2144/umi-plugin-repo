@@ -1,29 +1,20 @@
-import { Button } from 'antd';
-import { IUiApi } from 'umi-types'
+import React from 'react';
+import { IUiApi } from 'umi-types';
+import RepoStatus from './component/RepoStatus';
 
 export default (api: IUiApi) => {
-  const { callRemote } = api;
-
   function PluginPanel() {
     return (
       <div style={{ padding: 20 }}>
-        <Button
-          type="primary"
-          onClick={async () => {
-            const { data } = await callRemote({
-              type: 'org.chenshuai2144.umi-plugin-repo.test',
-            });
-            alert(data);
-          }}
-        >Test</Button>
+        <RepoStatus api={api} />
       </div>
     );
   }
 
   api.addPanel({
-    title: 'umi-plugin-repo',
+    title: '项目详情',
     path: '/umi-plugin-repo',
     icon: 'home',
     component: PluginPanel,
   });
-}
+};
