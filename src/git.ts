@@ -33,6 +33,15 @@ class GitAction {
         resolve(branch.all);
       });
     });
+  getRemote = () =>
+    new Promise<string[]>((resolve, reject) => {
+      this.gitAction.listRemote(['--get-url'], (err, data) => {
+        if (!err) {
+          resolve(data);
+        }
+        reject(err);
+      });
+    });
 }
 
 export default GitAction;

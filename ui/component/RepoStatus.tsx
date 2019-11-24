@@ -1,9 +1,10 @@
 import React from 'react';
-import { Tags, History, Branches, Loading } from '@ant-design/icons';
+import { Tags, Global, History, Branches, Loading } from '@ant-design/icons';
 import Moment from 'moment';
 import { Avatar, Tooltip } from 'antd';
 import { IUiApi } from 'umi-types';
 import { useAsyncRetry } from 'react-use';
+import gitUrlParse from 'git-url-parse';
 import ReadMe from './ReadMe';
 
 export const LoadingTag = () => (
@@ -34,6 +35,51 @@ export interface LogsItem {
   author_email?: string;
 }
 
+/**
+ * 仓库的 remote 信息
+ * @param param0
+ */
+const RemoteTag: React.FC<{
+  api: IUiApi;
+}> = ({ api }) => {
+  const { value, loading } = useAsyncRetry<string>(async () => {
+    const { data } = (await api.callRemote({
+      type: 'org.umi-plugin-repo.remote',
+    })) as {
+      data: string;
+    };
+    return data;
+  });
+  if (loading) {
+    return <LoadingTag />;
+  }
+  const repoInfo = gitUrlParse(value);
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRight: '1px solid #30303d',
+      }}
+    >
+      <Global
+        style={{
+          marginRight: 8,
+        }}
+      />
+      <a href={repoInfo.toString('https')} target="_black">
+        {repoInfo.name}
+      </a>
+    </div>
+  );
+};
+
+/**
+ * 提交记录
+ * @param param0
+ */
 const LogsTag: React.FC<{
   api: IUiApi;
 }> = ({ api }) => {
@@ -68,6 +114,10 @@ const LogsTag: React.FC<{
   );
 };
 
+/**
+ * 分支信息
+ * @param param0
+ */
 const BranchTag: React.FC<{
   api: IUiApi;
 }> = ({ api }) => {
@@ -102,6 +152,10 @@ const BranchTag: React.FC<{
   );
 };
 
+/**
+ * 标签列表
+ * @param param0
+ */
 const TagsInfoTag: React.FC<{
   api: IUiApi;
 }> = ({ api }) => {
@@ -135,12 +189,22 @@ const TagsInfoTag: React.FC<{
   );
 };
 
+/**
+ * 上次提交的信息
+ * @param param0
+ */
 export const LastCommit = ({ api }: { api: IUiApi }) => {
-  const { value, loading } = useAsyncRetry<LogsItem[]>(async () => {
+  const { value, loading } = useAsyncRetry<{
+    commit: LogsItem;
+    remote: string;
+  }>(async () => {
     const { data } = (await api.callRemote({
-      type: 'org.umi-plugin-repo.logs',
+      type: 'org.umi-plugin-repo.lastCommit',
     })) as {
-      data: LogsItem[];
+      data: {
+        commit: LogsItem;
+        remote: string;
+      };
     };
     return data;
   });
@@ -148,8 +212,9 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
   if (loading) {
     return <LoadingTag />;
   }
-  const lastCommit = value[0];
-
+  const lastCommit = value.commit;
+  const repoInfo = gitUrlParse(value.remote);
+  const repoUrl = repoInfo.toString('https');
   return (
     <div
       style={{
@@ -192,9 +257,11 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
       <span>
         最后一次提交{' '}
         <Tooltip title={lastCommit.hash}>
-          <span>{lastCommit.hash.slice(0, 6)} </span>{' '}
+          <a target="_blank" href={`${repoUrl}/commit/${lastCommit.hash}`.replace('.git', '')}>
+            {lastCommit.hash.slice(0, 7)}{' '}
+          </a>{' '}
         </Tooltip>
-        在 {Moment(lastCommit.date).format('YYYY-MM-DD HH:mm:SS')}
+        在 {Moment(lastCommit.date).format('YYYY-MM-DD HH:mm')}
       </span>
     </div>
   );
@@ -210,6 +277,7 @@ export default ({ api }: { api: IUiApi }) => (
         border: '1px solid #30303d',
       }}
     >
+      <RemoteTag api={api} />
       <LogsTag api={api} />
       <BranchTag api={api} />
       <TagsInfoTag api={api} />

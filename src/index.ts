@@ -13,7 +13,6 @@ export default function(api: IApi, options) {
   });
   const gitAction = new GitAction(api.winPath(api.paths.cwd));
   api.addUIPlugin(require.resolve('../dist/index.umd'));
-
   api.onUISocket(({ action, failure, success }) => {
     if (action.type === 'org.umi-plugin-repo.tags') {
       (async () => {
@@ -37,6 +36,27 @@ export default function(api: IApi, options) {
         const branch = await gitAction.getBranch();
         success({
           data: branch,
+        });
+      })();
+    }
+
+    if (action.type === 'org.umi-plugin-repo.remote') {
+      (async () => {
+        const remote = await gitAction.getRemote();
+        success({
+          data: remote,
+        });
+      })();
+    }
+    if (action.type === 'org.umi-plugin-repo.lastCommit') {
+      (async () => {
+        const remote = await gitAction.getRemote();
+        const logs = await gitAction.getLogs();
+        success({
+          data: {
+            remote,
+            commit: logs[0],
+          },
         });
       })();
     }
