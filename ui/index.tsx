@@ -12,9 +12,9 @@ export default (api: IUiApi) => {
   }
 
   api.addPanel({
-    title: '项目详情',
-    path: '/umi-plugin-repo',
-    icon: 'home',
+    title: '详情',
+    path: '/details',
+    icon: 'fork',
     component: PluginPanel,
   });
 };

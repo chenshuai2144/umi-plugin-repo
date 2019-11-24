@@ -154,10 +154,10 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
     <div
       style={{
         backgroundColor: '#30303d',
-        padding: 8,
         flex: 1,
         display: 'flex',
         alignItems: 'center',
+        padding: '8px 24px',
         justifyContent: 'space-between',
       }}
     >
