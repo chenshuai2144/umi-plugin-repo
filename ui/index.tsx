@@ -5,7 +5,7 @@ import RepoStatus from './component/RepoStatus';
 export default (api: IUiApi) => {
   function PluginPanel() {
     return (
-      <div style={{ padding: 20 }}>
+      <div className="umi-plugin-repo" style={{ padding: 20, height: '100%', overflow: 'auto' }}>
         <RepoStatus api={api} />
       </div>
     );

@@ -1,6 +1,9 @@
 // ref:
 // - https://umijs.org/plugin/develop.html
 import { IApi } from 'umi-types';
+import fs from 'fs';
+import { join } from 'path';
+
 import GitAction from './git';
 
 export default function(api: IApi, options) {
@@ -8,7 +11,7 @@ export default function(api: IApi, options) {
   api.chainWebpackConfig(config => {
     // console.log(config.toString());
   });
-  const gitAction = new GitAction(api.winPath(api.cwd));
+  const gitAction = new GitAction(api.winPath(api.paths.cwd));
   api.addUIPlugin(require.resolve('../dist/index.umd'));
 
   api.onUISocket(({ action, failure, success }) => {
@@ -34,6 +37,30 @@ export default function(api: IApi, options) {
         const branch = await gitAction.getBranch();
         success({
           data: branch,
+        });
+      })();
+    }
+
+    if (action.type === 'org.umi-plugin-repo.readme') {
+      (async () => {
+        const cwd = api.winPath(api.paths.cwd);
+        const READMEPath = join(cwd, 'README.md');
+        const emoji = require('markdown-it-emoji');
+        const md = require('markdown-it')({
+          html: true,
+          linkify: true,
+          typographer: true,
+        });
+        md.use(emoji);
+        if (fs.existsSync(READMEPath)) {
+          const readmeFile = fs.readFileSync(READMEPath, 'utf-8');
+          success({
+            data: md.render(readmeFile),
+          });
+          return;
+        }
+        success({
+          data: `没有找到您项目中的 README.md 文件`,
         });
       })();
     }

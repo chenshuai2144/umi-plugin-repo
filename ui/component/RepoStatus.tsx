@@ -4,6 +4,7 @@ import Moment from 'moment';
 import { Avatar, Tooltip } from 'antd';
 import { IUiApi } from 'umi-types';
 import { useAsyncRetry } from 'react-use';
+import ReadMe from './ReadMe';
 
 export const LoadingTag = () => (
   <div
@@ -143,10 +144,12 @@ export const LastCommit = ({ api }: { api: IUiApi }) => {
     };
     return data;
   });
+
   if (loading) {
     return <LoadingTag />;
   }
-  const lastCommit = value.pop();
+  const lastCommit = value[0];
+
   return (
     <div
       style={{
@@ -212,5 +215,6 @@ export default ({ api }: { api: IUiApi }) => (
       <TagsInfoTag api={api} />
     </div>
     <LastCommit api={api} />
+    <ReadMe api={api} />
   </>
 );

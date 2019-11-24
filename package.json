@@ -37,6 +37,8 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "markdown-it": "^10.0.0",
+    "markdown-it-emoji": "^1.4.0",
     "react-use": "^13.9.0",
     "simple-git": "^1.126.0"
   }
