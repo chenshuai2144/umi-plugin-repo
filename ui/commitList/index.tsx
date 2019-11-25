@@ -80,7 +80,7 @@ const LogsList: React.FC<{
                     }}
                   />
                 }
-                title={<a href="https://ant.design">{item.message}</a>}
+                title={<a href={`${repoUrl}/commit/${item.hash}`}>{item.message}</a>}
                 description={
                   <>
                     <a
