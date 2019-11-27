@@ -1,9 +1,9 @@
 import React from 'react';
-import { Popover, PageHeader, Button, List, Skeleton } from 'antd';
+import { PageHeader, List, Skeleton } from 'antd';
 import { IUiApi } from 'umi-types';
 import { useAsyncRetry } from 'react-use';
 import Moment from 'moment';
-import { Branches, ClockCircle, Dash, FileZip } from '@ant-design/icons';
+import { Branches, ClockCircle, FileZip } from '@ant-design/icons';
 import Counter from '../counter';
 import { LogsItem } from 'ui/typing';
 
@@ -19,11 +19,27 @@ const TagsList: React.FC<{
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.tags',
     })) as {
+      data: any[];
+    };
+    const logs = (await api.callRemote({
+      type: 'org.umi-plugin-repo.logs',
+    })) as {
       data: LogsItem[];
     };
-    return data;
+    // 从commit信息里面取到tag数据
+    const commits = logs.data.filter((a: any) => a.refs.startsWith('tag: '));
+    const tagList = data.map(item => {
+      let tag = { refs: item };
+      commits.forEach((i: any) => {
+        if (i.refs.includes(item)) {
+          i.refs = item;
+          tag = i;
+        }
+      });
+      return tag;
+    });
+    return tagList;
   });
-  console.log(value);
   const repoUrl = counter.repoInfo.toString('https');
   return (
     <>
@@ -50,23 +66,10 @@ const TagsList: React.FC<{
           pageSize: 10,
         }}
         renderItem={item => (
-          <List.Item
-            actions={[
-              <Popover
-                content={
-                  <div>
-                    <a>创建发布</a>
-                  </div>
-                }
-                trigger="click"
-              >
-                <Dash />
-              </Popover>,
-            ]}
-          >
+          <List.Item>
             <Skeleton loading={loading} avatar title={false}>
               <List.Item.Meta
-                title={<a href="">{item}</a>}
+                title={<a href="">{item.refs}</a>}
                 description={
                   <>
                     <ClockCircle
@@ -80,23 +83,15 @@ const TagsList: React.FC<{
                         marginRight: 8,
                       }}
                     />
-                    <a target="_blank" href="">
-                      分支
+                    <a target="_blank" href={`${repoUrl}/commit/${item.hash}`.replace('.git', '')}>
+                      {item.hash.slice(0, 7)}
                     </a>{' '}
                     <FileZip
                       style={{
                         marginRight: 8,
                       }}
                     />
-                    <a target="_blank" href="">
-                      压缩
-                    </a>{' '}
-                    <FileZip
-                      style={{
-                        marginRight: 8,
-                      }}
-                    />
-                    <a target="_blank" href="">
+                    <a target="_blank" href={`${repoUrl}/archive/${item.refs}.tar.gz`.replace('.git', '')}>
                       tar.gz
                     </a>{' '}
                   </>
