@@ -156,7 +156,8 @@ const BranchTag: React.FC<{
  */
 const TagsInfoTag: React.FC<{
   api: IUiApi;
-}> = ({ api }) => {
+  onClick: () => void;
+}> = ({ api, onClick }) => {
   const { value = [], loading } = useAsyncRetry(async () => {
     const { data } = (await api.callRemote({
       type: 'org.umi-plugin-repo.tags',
@@ -170,6 +171,7 @@ const TagsInfoTag: React.FC<{
   }
   return (
     <div
+      onClick={onClick}
       style={{
         flex: 1,
         display: 'flex',
@@ -295,7 +297,12 @@ export default ({ api }: { api: IUiApi }) => {
           }}
           api={api}
         />
-        <TagsInfoTag api={api} />
+        <TagsInfoTag
+          onClick={() => {
+            counter.setPage('tags');
+          }}
+          api={api}
+        />
       </div>
       <LastCommit api={api} />
       <ReadMe api={api} />

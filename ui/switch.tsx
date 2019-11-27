@@ -4,6 +4,7 @@ import Counter from './counter';
 import RepoStatus from './component/RepoStatus';
 import CommitList from './commitList';
 import BranchList from './branchList';
+import TagsList from './tagsList';
 
 const getPage = (page: 'detail' | 'commit' | 'branch' | 'tags', api: IUiApi) => {
   if (page === 'commit') {
@@ -11,6 +12,9 @@ const getPage = (page: 'detail' | 'commit' | 'branch' | 'tags', api: IUiApi) => 
   }
   if (page === 'branch') {
     return <BranchList api={api} />;
+  }
+  if (page == 'tags') {
+    return <TagsList api={api} />;
   }
   return null;
 };
